@@ -1,0 +1,53 @@
+erDiagram
+  USER ||--o{ LISTING : sells
+  USER ||--o{ REFRESH_TOKEN : owns
+  CATEGORY ||--o{ CATEGORY : parent
+  CATEGORY ||--o{ LISTING : categorizes
+  CATEGORY ||--o{ FILTER_ATTRIBUTE : defines
+  LISTING ||--o{ LISTING_ATTRIBUTE : has
+
+  USER {
+    string id
+    string name
+    string email
+    string role
+  }
+
+  LISTING {
+    string id
+    string sellerId
+    string categoryId
+    string make
+    string model
+    number price
+  }
+
+  CATEGORY {
+    string id
+    string name
+    string parentId
+    string[] ancestors
+    number depth
+  }
+
+  FILTER_ATTRIBUTE {
+    string id
+    string categoryId
+    string key
+    string type
+  }
+
+  REFRESH_TOKEN {
+    string id
+    string userId
+    string jti
+    date expiresAt
+  }
+
+  LISTING_ATTRIBUTE {
+    string key
+    string type
+    string valueString
+    number valueNumber
+    boolean valueBoolean
+  }

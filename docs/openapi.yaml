@@ -1,0 +1,957 @@
+openapi: 3.0.3
+info:
+  title: Otomotif Marketplace API
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+tags:
+  - name: Auth
+  - name: Listings
+  - name: Search
+  - name: Filters
+  - name: Categories
+  - name: Users
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              default:
+                value:
+                  name: Budi Santoso
+                  email: budi@example.com
+                  password: Password123!
+                  role: seller
+                  phone: "08123456789"
+                  city: Jakarta
+      responses:
+        '201':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                default:
+                  value:
+                    user:
+                      id: 64f0c1b3c1f1a11111111111
+                      name: Budi Santoso
+                      email: budi@example.com
+                      role: seller
+                      phone: "08123456789"
+                      city: Jakarta
+                    tokens:
+                      accessToken: <access_token>
+                      refreshToken: <refresh_token>
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              default:
+                value:
+                  email: budi@example.com
+                  password: Password123!
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                default:
+                  value:
+                    user:
+                      id: 64f0c1b3c1f1a11111111111
+                      name: Budi Santoso
+                      email: budi@example.com
+                      role: seller
+                      phone: "08123456789"
+                      city: Jakarta
+                    tokens:
+                      accessToken: <access_token>
+                      refreshToken: <refresh_token>
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+            examples:
+              default:
+                value:
+                  refreshToken: <refresh_token>
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tokens'
+              examples:
+                default:
+                  value:
+                    accessToken: <access_token>
+                    refreshToken: <refresh_token>
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+            examples:
+              default:
+                value:
+                  refreshToken: <refresh_token>
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              examples:
+                default:
+                  value:
+                    message: Logged out
+  /listings:
+    get:
+      tags: [Listings]
+      summary: Browse listings with filters
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: make
+          schema: { type: string }
+        - in: query
+          name: model
+          schema: { type: string }
+        - in: query
+          name: yearMin
+          schema: { type: number }
+        - in: query
+          name: yearMax
+          schema: { type: number }
+        - in: query
+          name: priceMin
+          schema: { type: number }
+        - in: query
+          name: priceMax
+          schema: { type: number }
+        - in: query
+          name: mileageMin
+          schema: { type: number }
+        - in: query
+          name: mileageMax
+          schema: { type: number }
+        - in: query
+          name: sort
+          schema:
+            type: string
+            example: createdAt:desc
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingListResponse'
+              examples:
+                default:
+                  value:
+                    items:
+                      - id: 64f0c1b3c1f1a11111111111
+                        sellerId: 64f0c1b3c1f1a22222222222
+                        categoryId: 64f0c1b3c1f1a33333333333
+                        title: Toyota Avanza 2019
+                        make: Toyota
+                        model: Avanza
+                        year: 2019
+                        mileage: 45000
+                        price: 175000000
+                        condition: used
+                        transmission: automatic
+                        fuelType: gasoline
+                        color: Black
+                        status: available
+                    nextCursor: null
+    post:
+      tags: [Listings]
+      summary: Create listing (seller/admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingInput'
+            examples:
+              default:
+                value:
+                  categoryId: 64f0c1b3c1f1a33333333333
+                  title: Toyota Avanza 2019
+                  description: Unit terawat, pajak hidup.
+                  make: Toyota
+                  model: Avanza
+                  year: 2019
+                  mileage: 45000
+                  price: 175000000
+                  condition: used
+                  transmission: automatic
+                  fuelType: gasoline
+                  color: Black
+                  images: []
+                  location:
+                    city: Jakarta
+                    country: Indonesia
+                  attributes:
+                    - key: driveType
+                      type: enum
+                      valueString: FWD
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a11111111111
+                    sellerId: 64f0c1b3c1f1a22222222222
+                    categoryId: 64f0c1b3c1f1a33333333333
+                    title: Toyota Avanza 2019
+                    make: Toyota
+                    model: Avanza
+                    year: 2019
+                    mileage: 45000
+                    price: 175000000
+                    condition: used
+                    status: available
+  /listings/{id}:
+    get:
+      tags: [Listings]
+      summary: Get listing
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a11111111111
+                    sellerId: 64f0c1b3c1f1a22222222222
+                    categoryId: 64f0c1b3c1f1a33333333333
+                    title: Toyota Avanza 2019
+                    make: Toyota
+                    model: Avanza
+                    year: 2019
+                    mileage: 45000
+                    price: 175000000
+                    condition: used
+                    status: available
+    patch:
+      tags: [Listings]
+      summary: Update listing (owner/admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingInput'
+            examples:
+              default:
+                value:
+                  price: 169000000
+                  status: pending
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a11111111111
+                    price: 169000000
+                    status: pending
+    delete:
+      tags: [Listings]
+      summary: Soft delete listing (owner/admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a11111111111
+                    status: removed
+  /listings/search:
+    get:
+      tags: [Search]
+      summary: Full-text + faceted search
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: sort
+          schema: { type: string }
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingListResponse'
+              examples:
+                default:
+                  value:
+                    items:
+                      - id: 64f0c1b3c1f1a11111111111
+                        title: Toyota Avanza 2019
+                        make: Toyota
+                        model: Avanza
+                        year: 2019
+                        price: 175000000
+                        status: available
+                    nextCursor: null
+  /listings/search/suggest:
+    get:
+      tags: [Search]
+      summary: Autocomplete suggestions
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestResponse'
+              examples:
+                default:
+                  value:
+                    makes: [Toyota, Honda]
+                    models: [Avanza, Civic]
+                    cities: [Jakarta, Bandung]
+  /filters:
+    get:
+      tags: [Filters]
+      summary: Facet counts for filters
+      parameters:
+        - in: query
+          name: categoryId
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiltersResponse'
+              examples:
+                default:
+                  value:
+                    makes:
+                      - _id: Toyota
+                        count: 120
+                    models:
+                      - _id: Avanza
+                        count: 45
+                    priceRange:
+                      - _id: null
+                        min: 8000000
+                        max: 800000000
+  /filters/{categoryId}:
+    get:
+      tags: [Filters]
+      summary: Filter attributes by category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: includeInherited
+          schema: { type: boolean, default: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FilterAttribute'
+              examples:
+                default:
+                  value:
+                    - id: 64f0c1b3c1f1a44444444444
+                      categoryId: 64f0c1b3c1f1a33333333333
+                      key: driveType
+                      label: Drive Type
+                      type: enum
+                      options: [FWD, RWD, AWD]
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Get category tree
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryNode'
+              examples:
+                default:
+                  value:
+                    - id: 64f0c1b3c1f1a33333333333
+                      name: Cars
+                      slug: cars
+                      parentId: null
+                      ancestors: []
+                      depth: 0
+                      children:
+                        - id: 64f0c1b3c1f1a33333333334
+                          name: SUV
+                          slug: cars-suv
+                          parentId: 64f0c1b3c1f1a33333333333
+                          ancestors: [64f0c1b3c1f1a33333333333]
+                          depth: 1
+                          children: []
+    post:
+      tags: [Categories]
+      summary: Create category (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+            examples:
+              default:
+                value:
+                  name: Truck
+                  slug: cars-truck
+                  parentId: 64f0c1b3c1f1a33333333333
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a55555555555
+                    name: Truck
+                    slug: cars-truck
+                    parentId: 64f0c1b3c1f1a33333333333
+                    ancestors: [64f0c1b3c1f1a33333333333]
+                    depth: 1
+  /categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Get category with children
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryWithChildren'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a33333333333
+                    name: Cars
+                    slug: cars
+                    parentId: null
+                    ancestors: []
+                    depth: 0
+                    children:
+                      - id: 64f0c1b3c1f1a33333333334
+                        name: SUV
+                        slug: cars-suv
+                        parentId: 64f0c1b3c1f1a33333333333
+                        ancestors: [64f0c1b3c1f1a33333333333]
+                        depth: 1
+    patch:
+      tags: [Categories]
+      summary: Update category (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+            examples:
+              default:
+                value:
+                  name: SUV Premium
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a33333333334
+                    name: SUV Premium
+                    slug: cars-suv
+                    parentId: 64f0c1b3c1f1a33333333333
+                    ancestors: [64f0c1b3c1f1a33333333333]
+                    depth: 1
+  /categories/{id}/listings:
+    get:
+      tags: [Categories]
+      summary: Listings by category subtree
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingListResponse'
+              examples:
+                default:
+                  value:
+                    items:
+                      - id: 64f0c1b3c1f1a11111111111
+                        title: Toyota Avanza 2019
+                        price: 175000000
+                        status: available
+                    nextCursor: null
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a22222222222
+                    name: Seller One
+                    email: seller@otomotif.local
+                    role: seller
+                    city: Jakarta
+    patch:
+      tags: [Users]
+      summary: Update current user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+            examples:
+              default:
+                value:
+                  name: Seller Two
+                  phone: "08123456789"
+                  city: Bandung
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                default:
+                  value:
+                    id: 64f0c1b3c1f1a22222222222
+                    name: Seller Two
+                    email: seller@otomotif.local
+                    role: seller
+                    city: Bandung
+  /users/{id}/listings:
+    get:
+      tags: [Users]
+      summary: Public listings by seller
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingListResponse'
+              examples:
+                default:
+                  value:
+                    items:
+                      - id: 64f0c1b3c1f1a11111111111
+                        title: Toyota Avanza 2019
+                        price: 175000000
+                        status: available
+                    nextCursor: null
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Tokens:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/Tokens'
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string }
+        email: { type: string }
+        password: { type: string }
+        role: { type: string, enum: [buyer, seller] }
+        phone: { type: string }
+        city: { type: string }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+    MessageResponse:
+      type: object
+      properties:
+        message: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        phone: { type: string }
+        city: { type: string }
+    UserUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        phone: { type: string }
+        city: { type: string }
+    Listing:
+      type: object
+      properties:
+        id: { type: string }
+        sellerId: { type: string }
+        categoryId: { type: string }
+        title: { type: string }
+        description: { type: string }
+        make: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        mileage: { type: integer }
+        price: { type: number }
+        condition: { type: string }
+        transmission: { type: string }
+        fuelType: { type: string }
+        color: { type: string }
+        images:
+          type: array
+          items: { type: string }
+        location:
+          type: object
+          properties:
+            city: { type: string }
+            province: { type: string }
+            country: { type: string }
+        status: { type: string }
+    ListingInput:
+      type: object
+      required: [categoryId, make, model, year, mileage, price, condition]
+      properties:
+        categoryId: { type: string }
+        title: { type: string }
+        description: { type: string }
+        make: { type: string }
+        model: { type: string }
+        year: { type: integer }
+        mileage: { type: integer }
+        price: { type: number }
+        condition: { type: string }
+        transmission: { type: string }
+        fuelType: { type: string }
+        color: { type: string }
+        images:
+          type: array
+          items: { type: string }
+        location:
+          type: object
+          properties:
+            city: { type: string }
+            province: { type: string }
+            country: { type: string }
+        attributes:
+          type: array
+          items:
+            type: object
+            properties:
+              key: { type: string }
+              type: { type: string }
+              valueString: { type: string }
+              valueNumber: { type: number }
+              valueBoolean: { type: boolean }
+    ListingListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Listing'
+        nextCursor:
+          type: string
+          nullable: true
+    FilterAttribute:
+      type: object
+      properties:
+        id: { type: string }
+        categoryId: { type: string }
+        key: { type: string }
+        label: { type: string }
+        type: { type: string }
+        options:
+          type: array
+          items: { type: string }
+        range:
+          type: object
+          properties:
+            min: { type: number }
+            max: { type: number }
+        unit: { type: string }
+    FacetValue:
+      type: object
+      properties:
+        _id: { type: string }
+        count: { type: integer }
+    FiltersResponse:
+      type: object
+      properties:
+        makes:
+          type: array
+          items: { $ref: '#/components/schemas/FacetValue' }
+        models:
+          type: array
+          items: { $ref: '#/components/schemas/FacetValue' }
+        transmissions:
+          type: array
+          items: { $ref: '#/components/schemas/FacetValue' }
+        fuelTypes:
+          type: array
+          items: { $ref: '#/components/schemas/FacetValue' }
+        conditions:
+          type: array
+          items: { $ref: '#/components/schemas/FacetValue' }
+        colors:
+          type: array
+          items: { $ref: '#/components/schemas/FacetValue' }
+        cities:
+          type: array
+          items: { $ref: '#/components/schemas/FacetValue' }
+        priceRange:
+          type: array
+          items:
+            type: object
+            properties:
+              _id: { type: string, nullable: true }
+              min: { type: number }
+              max: { type: number }
+        yearRange:
+          type: array
+          items:
+            type: object
+            properties:
+              _id: { type: string, nullable: true }
+              min: { type: number }
+              max: { type: number }
+        mileageRange:
+          type: array
+          items:
+            type: object
+            properties:
+              _id: { type: string, nullable: true }
+              min: { type: number }
+              max: { type: number }
+        attributes:
+          type: array
+          items:
+            type: object
+    SuggestResponse:
+      type: object
+      properties:
+        makes:
+          type: array
+          items: { type: string }
+        models:
+          type: array
+          items: { type: string }
+        cities:
+          type: array
+          items: { type: string }
+    Category:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        parentId: { type: string, nullable: true }
+        ancestors:
+          type: array
+          items: { type: string }
+        depth: { type: integer }
+    CategoryNode:
+      allOf:
+        - $ref: '#/components/schemas/Category'
+        - type: object
+          properties:
+            children:
+              type: array
+              items:
+                $ref: '#/components/schemas/CategoryNode'
+    CategoryWithChildren:
+      allOf:
+        - $ref: '#/components/schemas/Category'
+        - type: object
+          properties:
+            children:
+              type: array
+              items:
+                $ref: '#/components/schemas/Category'
+    CategoryInput:
+      type: object
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        parentId: { type: string }
